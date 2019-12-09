@@ -14,8 +14,8 @@ import java.util.*;
  * in the HashMap, the corresponding response is returned. If none of the input
  * words is recognized, one of the default responses is randomly chosen.
  * 
- * @author David J. Barnes and Michael Kölling.
- * @version 2016.02.29
+ * @author Ryan Kennedy
+ * @version 2019.12.01
  */
 public class Responder
 {
@@ -32,9 +32,7 @@ public class Responder
      */
     public Responder()
     {
-        responseMap = new HashMap<>();
-        defaultResponses = new ArrayList<>();
-        fillResponseMap();
+        defaultResponses = new ArrayList<String>();
         fillDefaultResponses();
         randomGenerator = new Random();
     }
@@ -47,13 +45,34 @@ public class Responder
      */
     public String generateResponse(HashSet<String> words)
     {
-        Iterator<String> it = words.iterator();
-        while(it.hasNext()) {
-            String word = it.next();
-            String response = responseMap.get(word);
-            if(response != null) {
-                return response;
+        String response;
+        String word;
+        String line;
+        BufferedReader reader;
+        
+        try{
+            reader = new BufferedReader(new FileReader("responses.txt"));
+            Iterator<String> it = words.iterator();
+            while(it.hasNext()) {
+                word = it.next();
+                line = reader.readLine();
+                while(line != null){
+                    if(line.trim().equalsIgnoreCase(word.trim())){
+                        response = reader.readLine();
+                        if(response != null) 
+                                return response;}
+                    else
+                        reader.readLine();
+                    line = reader.readLine();
+                }
+                reader.close();
             }
+        }
+        catch(FileNotFoundException e){
+            System.out.println("Unable to open default responses");
+        }
+        catch(IOException e){
+            System.out.println("Unable to open default responses");
         }
         // If we get here, none of the words from the input line was recognized.
         // In this case we pick one of our default responses (what we say when
@@ -123,13 +142,18 @@ public class Responder
     {
         Charset charset = Charset.forName("US-ASCII");
         Path path = Paths.get(FILE_OF_DEFAULT_RESPONSES);
-        try (BufferedReader reader = Files.newBufferedReader(path, charset)) {
-            String response = reader.readLine();
-            while(response != null) {
-                defaultResponses.add(response);
-                response = reader.readLine();
-            }
-        }
+        try{
+            int i;
+            char ch;
+            BufferedReader reader = new BufferedReader(new FileReader(FILE_OF_DEFAULT_RESPONSES));
+            String response = "";
+            while((i = reader.read()) != -1){
+                ch = (char)i;
+                if(response == "")
+                    response = Character.toString(ch);
+                else
+                    response = response + Character.toString(ch);
+        }    }
         catch(FileNotFoundException e) {
             System.err.println("Unable to open " + FILE_OF_DEFAULT_RESPONSES);
         }
